@@ -8,8 +8,13 @@ CORS(app)  # Habilita CORS en toda la API
 
 # Configuración de la base de datos desde la variable de entorno
 DATABASE_URL = os.getenv("DATABASE_URL")
-conn = psycopg2.connect(DATABASE_URL)
-cursor = conn.cursor()
+
+try:
+    conn = psycopg2.connect(DATABASE_URL)
+    cursor = conn.cursor()
+    print("✅ Conexión a PostgreSQL exitosa")
+except Exception as e:
+    print(f"❌ ERROR: No se pudo conectar a PostgreSQL: {e}")
 
 # Crear tabla si no existe
 cursor.execute('''
@@ -26,15 +31,19 @@ conn.commit()
 
 @app.route("/add_restaurant", methods=["POST"])
 def add_restaurant():
-    data = request.get_json()
     try:
+        data = request.get_json()
+        print(f"📩 Datos recibidos: {data}")  # Debug para ver qué llega
+        
         cursor.execute(
             "INSERT INTO restaurants (name, city, address, cuisine, price) VALUES (%s, %s, %s, %s, %s)",
             (data["name"], data["city"], data["address"], data["cuisine"], data["price"])
         )
         conn.commit()
         return jsonify({"message": "Restaurante agregado con éxito"}), 201
+    
     except Exception as e:
+        print(f"❌ ERROR al agregar restaurante: {e}")  # Ver error en logs
         return jsonify({"error": str(e)}), 500
 
 @app.route("/get_restaurants", methods=["GET"])
