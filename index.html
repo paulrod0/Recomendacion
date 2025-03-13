@@ -56,14 +56,31 @@
         </select>
         <button onclick="addRestaurant()">Agregar Restaurante</button>
         
-        <h3>Buscar por Ciudad</h3>
+        <h3>Buscar por Filtros</h3>
         <input type="text" id="searchCity" placeholder="Introduce una ciudad">
+        <select id="searchCuisine">
+            <option value="">-- Tipo de cocina --</option>
+            <option value="Italiana">Italiana</option>
+            <option value="Japonesa">Japonesa</option>
+            <option value="Española">Española</option>
+            <option value="Mexicana">Mexicana</option>
+            <option value="Francesa">Francesa</option>
+        </select>
+        <select id="searchPrice">
+            <option value="">-- Rango de precio --</option>
+            <option value="€">€</option>
+            <option value="€€">€€</option>
+            <option value="€€€">€€€</option>
+            <option value="€€€€">€€€€</option>
+        </select>
         <button onclick="searchRestaurants()">Buscar</button>
         
         <div class="restaurant-list" id="restaurantList"></div>
     </div>
 
     <script>
+        const API_URL = 'https://recomendacion-slsz.onrender.com';
+
         async function addRestaurant() {
             const name = document.getElementById('name').value;
             const city = document.getElementById('city').value;
@@ -76,7 +93,7 @@
                 return;
             }
 
-            const response = await fetch('http://127.0.0.1:5000/add_restaurant', {
+            const response = await fetch(`${API_URL}/add_restaurant`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, city, address, cuisine, price })
@@ -89,7 +106,7 @@
         }
 
         async function loadRestaurants() {
-            const response = await fetch('http://127.0.0.1:5000/get_restaurants');
+            const response = await fetch(`${API_URL}/get_restaurants`);
             const data = await response.json();
             const list = document.getElementById('restaurantList');
             list.innerHTML = '';
@@ -104,12 +121,15 @@
 
         async function searchRestaurants() {
             const city = document.getElementById('searchCity').value;
-            if (!city) {
-                alert('Introduce una ciudad para buscar.');
-                return;
-            }
+            const cuisine = document.getElementById('searchCuisine').value;
+            const price = document.getElementById('searchPrice').value;
+            
+            const queryParams = new URLSearchParams();
+            if (city) queryParams.append('city', city);
+            if (cuisine) queryParams.append('cuisine', cuisine);
+            if (price) queryParams.append('price', price);
 
-            const response = await fetch(`http://127.0.0.1:5000/search_restaurants?city=${city}`);
+            const response = await fetch(`${API_URL}/search_restaurants?${queryParams.toString()}`);
             const data = await response.json();
             const list = document.getElementById('restaurantList');
             list.innerHTML = '';
