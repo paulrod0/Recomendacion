@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recomendaciones de Restaurantes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .restaurant-list {
+            margin-top: 20px;
+        }
+        .restaurant {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Recomendaciones de Restaurantes</h2>
+        <input type="text" id="name" placeholder="Nombre del Restaurante">
+        <input type="text" id="city" placeholder="Ciudad">
+        <input type="text" id="address" placeholder="Dirección">
+        <select id="cuisine">
+            <option value="Italiana">Italiana</option>
+            <option value="Japonesa">Japonesa</option>
+            <option value="Española">Española</option>
+            <option value="Mexicana">Mexicana</option>
+            <option value="Francesa">Francesa</option>
+        </select>
+        <select id="price">
+            <option value="€">€</option>
+            <option value="€€">€€</option>
+            <option value="€€€">€€€</option>
+            <option value="€€€€">€€€€</option>
+        </select>
+        <button onclick="addRestaurant()">Agregar Restaurante</button>
+        
+        <h3>Buscar por Ciudad</h3>
+        <input type="text" id="searchCity" placeholder="Introduce una ciudad">
+        <button onclick="searchRestaurants()">Buscar</button>
+        
+        <div class="restaurant-list" id="restaurantList"></div>
+    </div>
+
+    <script>
+        async function addRestaurant() {
+            const name = document.getElementById('name').value;
+            const city = document.getElementById('city').value;
+            const address = document.getElementById('address').value;
+            const cuisine = document.getElementById('cuisine').value;
+            const price = document.getElementById('price').value;
+
+            if (!name || !city || !address) {
+                alert('Por favor, completa todos los campos.');
+                return;
+            }
+
+            const response = await fetch('http://127.0.0.1:5000/add_restaurant', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, city, address, cuisine, price })
+            });
+
+            if (response.ok) {
+                alert('Restaurante agregado con éxito');
+                loadRestaurants();
+            }
+        }
+
+        async function loadRestaurants() {
+            const response = await fetch('http://127.0.0.1:5000/get_restaurants');
+            const data = await response.json();
+            const list = document.getElementById('restaurantList');
+            list.innerHTML = '';
+
+            data.forEach(r => {
+                const div = document.createElement('div');
+                div.classList.add('restaurant');
+                div.innerHTML = `<strong>${r.name}</strong> (${r.city})<br>${r.address}<br>Cocina: ${r.cuisine} - Precio: ${r.price}`;
+                list.appendChild(div);
+            });
+        }
+
+        async function searchRestaurants() {
+            const city = document.getElementById('searchCity').value;
+            if (!city) {
+                alert('Introduce una ciudad para buscar.');
+                return;
+            }
+
+            const response = await fetch(`http://127.0.0.1:5000/search_restaurants?city=${city}`);
+            const data = await response.json();
+            const list = document.getElementById('restaurantList');
+            list.innerHTML = '';
+
+            data.forEach(r => {
+                const div = document.createElement('div');
+                div.classList.add('restaurant');
+                div.innerHTML = `<strong>${r.name}</strong> (${r.city})<br>${r.address}<br>Cocina: ${r.cuisine} - Precio: ${r.price}`;
+                list.appendChild(div);
+            });
+        }
+
+        window.onload = loadRestaurants;
+    </script>
+</body>
+</html>
