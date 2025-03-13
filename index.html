@@ -93,53 +93,58 @@
                 return;
             }
 
-            const response = await fetch(`${API_URL}/add_restaurant`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, city, address, cuisine, price })
-            });
+            try {
+                const response = await fetch(`${API_URL}/add_restaurant`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, city, address, cuisine, price })
+                });
 
-            if (response.ok) {
-                alert('Restaurante agregado con éxito');
-                loadRestaurants();
+                if (!response.ok) {
+                    throw new Error(`Error en la API: ${response.status}`);
+                }
+
+                const result = await response.json();
+                alert(result.message);
+                loadRestaurants(); // Recargar lista después de agregar
+
+            } catch (error) {
+                console.error('Error al agregar restaurante:', error);
+                alert('Error al conectar con el servidor.');
             }
-        }
-
-        async function loadRestaurants() {
-            const response = await fetch(`${API_URL}/get_restaurants`);
-            const data = await response.json();
-            const list = document.getElementById('restaurantList');
-            list.innerHTML = '';
-
-            data.forEach(r => {
-                const div = document.createElement('div');
-                div.classList.add('restaurant');
-                div.innerHTML = `<strong>${r.name}</strong> (${r.city})<br>${r.address}<br>Cocina: ${r.cuisine} - Precio: ${r.price}`;
-                list.appendChild(div);
-            });
         }
 
         async function searchRestaurants() {
             const city = document.getElementById('searchCity').value;
             const cuisine = document.getElementById('searchCuisine').value;
             const price = document.getElementById('searchPrice').value;
-            
+
             const queryParams = new URLSearchParams();
             if (city) queryParams.append('city', city);
             if (cuisine) queryParams.append('cuisine', cuisine);
             if (price) queryParams.append('price', price);
 
-            const response = await fetch(`${API_URL}/search_restaurants?${queryParams.toString()}`);
-            const data = await response.json();
-            const list = document.getElementById('restaurantList');
-            list.innerHTML = '';
+            try {
+                const response = await fetch(`${API_URL}/search_restaurants?${queryParams.toString()}`);
+                if (!response.ok) {
+                    throw new Error(`Error en la API: ${response.status}`);
+                }
 
-            data.forEach(r => {
-                const div = document.createElement('div');
-                div.classList.add('restaurant');
-                div.innerHTML = `<strong>${r.name}</strong> (${r.city})<br>${r.address}<br>Cocina: ${r.cuisine} - Precio: ${r.price}`;
-                list.appendChild(div);
-            });
+                const data = await response.json();
+                const list = document.getElementById('restaurantList');
+                list.innerHTML = '';
+
+                data.forEach(r => {
+                    const div = document.createElement('div');
+                    div.classList.add('restaurant');
+                    div.innerHTML = `<strong>${r.name}</strong> (${r.city})<br>${r.address}<br>Cocina: ${r.cuisine} - Precio: ${r.price}`;
+                    list.appendChild(div);
+                });
+
+            } catch (error) {
+                console.error('Error en la búsqueda:', error);
+                alert('Error al conectar con el servidor.');
+            }
         }
 
         window.onload = loadRestaurants;
